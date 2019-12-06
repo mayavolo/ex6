@@ -1,0 +1,18 @@
+The main runs the whole program
+The function decision_to_change_the_file changes the wav file contents according to the user input.
+The function compose_wav_file makes a new wav file according to the given instructions
+The function completion_menu saves the changed file to the given new file name
+There is a function for every audio changing option:
+reverse_audio(audio_data)
+accelerating_audio_speed(audio_data)
+slowdown_audio_speed(audio_data)
+turn_volume_up(audio_data)
+turn_volume_down(audio_data)
+low_pass_filter(audio_data_list)
+completion_menu(frame_rate, audio_data)
+Creating a new wav file is also divided to a number of functions:
+calculate_wave_length_for_index_i(max_vol, i, sample_rate, frequency)
+read_file_contents(file_path)
+parse_file_contents(lines)
+convert_pairs_to_wav_list(pair_list)
+compose_wav_file(instruction_file_path)
