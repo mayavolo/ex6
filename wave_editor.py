@@ -102,6 +102,7 @@ def reverse_audio(audio_data):
     :return: reversed list
     """
     audio_data.reverse()
+    print("The audio was reversed successfully")
     return audio_data
 
 
@@ -115,6 +116,7 @@ def accelerating_audio_speed(audio_data):
     for i in range(len(audio_data)):
         if i % 2 == 0:
             new_list.append(audio_data[i])
+    print("The audio was accelerated successfully")
     return new_list
 
 
@@ -133,6 +135,7 @@ def slowdown_audio_speed(audio_data):
                         int((audio_data[i - 1][1] + audio_data[i][1]) / 2)]
         new_list.append(average_list)
         new_list.append(audio_data[i])
+    print("The audio was slowed down successfully")
     return new_list
 
 
@@ -163,6 +166,7 @@ def turn_volume_up(audio_data):
             audio_data[i][1] = MIN_VOLUME
         else:
             audio_data[i][1] = second_sound
+    print("The audio volume raised successfully")
     return audio_data
 
 
@@ -193,6 +197,7 @@ def turn_volume_down(audio_data):
             audio_data[i][1] = MIN_VOLUME
         else:
             audio_data[i][1] = second_sound
+    print("The audio volume was turned down successfully")
     return audio_data
 
 
@@ -232,6 +237,7 @@ def low_pass_filter(audio_data_list):
              audio_data_list[len(audio_data_list) - 2][1]) / 2)
         audio_data[len(audio_data_list) - 1][0] = average_index_zero
         audio_data[len(audio_data_list) - 1][1] = average_index_one
+    print("The audio low passed successfully")
     return audio_data
 
 
@@ -240,18 +246,20 @@ def save_changes_and_exit(frame_rate, audio_data, wave_filename):
     This functions saves the updated wav file
     """
     wave_helper.save_wave(frame_rate, audio_data, wave_filename)
+    print("The new changes were successfully saved")
 
 
-def decision_to_change_the_file():
+def decision_to_change_the_file(frame_rate=None, audio_data=None):
     """
     This function handles the decision to make changes to a wav file
     """
-    file_name = input("Enter the name of the audio file:")
-    file_content = wave_helper.load_wave(file_name)
-    if file_content == (-1):
-        print("could not load the wav file")
-        return
-    frame_rate, audio_data = file_content
+    if frame_rate is None and audio_data is None:
+        file_name = input("Enter the name of the audio file:")
+        file_content = wave_helper.load_wave(file_name)
+        if file_content == (-1):
+            print("could not load the wav file")
+            return
+        frame_rate, audio_data = file_content
 
     new_audio_data_list = audio_data
     while True:
@@ -287,12 +295,7 @@ def completion_menu(frame_rate, audio_data):
     """
     This function saves the changed file to the given new file name
     """
-    sys.stdin.flush()
     new_file_name = input("Enter a name for the new wav file: ")
-    # For some reason, the pre-submission tests are putting 7 at this point in the input.
-    # Probably because there is '7' in the input file. Hence an ugly workaround
-    if new_file_name == "7":
-        new_file_name = input();
     save_changes_and_exit(frame_rate, audio_data, new_file_name)
 
 
@@ -318,7 +321,7 @@ def main():
                 if val is None:
                     continue
                 frame_rate, audio_data = val
-                completion_menu(frame_rate, audio_data)
+                decision_to_change_the_file(frame_rate, audio_data)
             elif decision == 3:
                 break
             else:
