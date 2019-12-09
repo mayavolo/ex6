@@ -19,82 +19,6 @@ NOTE_TO_FREQ_MAPPING = {
 MIN_VOLUME = -32768
 
 
-def calculate_wave_length_for_index_i(max_vol, i, sample_rate, frequency):
-    """
-    This function calculates the wave length
-    """
-    samples_per_cycle = sample_rate / frequency
-    return int(max_vol * math.sin(math.pi * 2 * i / samples_per_cycle))
-
-
-def read_file_contents(file_path):
-    """
-    Load file contents
-    """
-    if not os.path.exists(file_path):
-        return None
-    with open(file_path, 'r') as f:
-        lines = f.read().splitlines()
-        lines = ' '.join(lines)
-    return lines
-
-
-def parse_file_contents(lines):
-    """
-    This function is parsing the file content based on given rules
-    """
-    values = lines.split(' ')
-    values = [value for value in values if value != '']
-    if len(values) % 2:
-        return None
-    current_pair = []
-    pair_list = []
-    for i in range(len(values)):
-        if i % 2 == 0:
-            if values[i] not in NOTE_TO_FREQ_MAPPING.keys():
-                return None
-            current_pair.append(values[i])
-        else:
-            value_as_int = int(values[i])
-            if value_as_int < 0 or value_as_int > 16:
-                return None
-            current_pair.append(value_as_int)
-            pair_list.append(current_pair)
-            current_pair = []
-    return pair_list
-
-
-def convert_pairs_to_wav_list(pair_list):
-    """
-    This function builds the list of pairs that composes the final list
-    """
-    final_wav = []
-    for pair in pair_list:
-        current_note_length = pair[1] * int(1 / 16 * WAV_FILE_SAMPLE_RATE)
-        current_note = pair[0]
-        for i in range(current_note_length):
-            index_val = calculate_wave_length_for_index_i(MAX_VOLUME, i, WAV_FILE_SAMPLE_RATE,
-                                                          NOTE_TO_FREQ_MAPPING[
-                                                              current_note]) if current_note != 'Q' else 0
-            final_wav.append([index_val, index_val])
-    return final_wav
-
-
-def compose_wav_file(instruction_file_path):
-    """
-    This functions composes the wav file based on the given instructions
-    """
-    file_contents = read_file_contents(instruction_file_path)
-    if not file_contents:
-        print("Reading instructions file failed")
-        return None
-    pair_list = parse_file_contents(file_contents)
-    if not pair_list:
-        print("Parsing instructions file failed")
-        return None
-    return WAV_FILE_SAMPLE_RATE, convert_pairs_to_wav_list(pair_list)
-
-
 def reverse_audio(audio_data):
     """
     function that reverses the list of the audio
@@ -317,7 +241,7 @@ def main():
             elif decision == 2:
                 instructions_file = input("Enter the instructions file name: ")
 
-                val = compose_wav_file(instructions_file)
+                val = melody_composing(instructions_file)
                 if val is None:
                     continue
                 frame_rate, audio_data = val
@@ -329,6 +253,106 @@ def main():
 
         except ValueError:
             print("Invalid input")
+
+
+def read_melody_file(filename):
+    """
+    This function loads the content of the file
+    :param filename: the name of the file
+    :return: The content of the file (string)
+    """
+
+    if not os.path.exists(filename):
+        return None
+
+    with open(filename, 'r') as file:
+        melody = file.read().splitlines()
+        melody = ' '.join(melody)
+    return melody
+
+
+def melody_composing(filename):
+    instructions = read_melody_file(filename)  # the instructions of the composition
+    if not instructions:
+        print('invalid file')
+        return None
+
+    notes_list = note_time_list(instructions)
+    if not notes_list:
+        print('invalid notes')
+        return None
+
+    wav_list = make_a_wav(notes_list)
+    return WAV_FILE_SAMPLE_RATE, wav_list
+
+
+def note_time_list(melody):
+    """
+    this function make a list of a note and a time (like 16 or 8)
+    :param melody: The string with the instructions for the melody
+    :return: The list
+    """
+
+    instructions = melody.split(' ')
+    instructions = [value for value in instructions if value != '']
+
+    pairs = list()  # A list of lists[[Note, Number],....]
+    pair = list()  # A single list
+
+    if len(instructions) % 2:  # --> The list must be has an even length
+        return None
+
+    for i in range(len(instructions)):
+
+        value = instructions[i]
+
+        if not i % 2:
+            if value not in NOTE_TO_FREQ_MAPPING.keys() \
+                    or len(value) != 1:  # ----> it means we got incorrect instructions
+                return None
+
+            pair.append(value)
+
+        else:
+            if not value.isdigit() \
+                    or int(value) <= 0:  # ----> it means we got incorrect instructions
+                return None
+
+            pair.append(int(value))
+            pairs.append(pair)
+            pair = list()
+
+    return pairs
+
+
+def calculate_length_of_sample(frequency, index):
+    samples_per_cycle = WAV_FILE_SAMPLE_RATE / frequency
+    length_of_index = int(MAX_VOLUME * math.sin(2 * math.pi * (index / samples_per_cycle)))
+
+    return [length_of_index, length_of_index]
+
+
+def make_a_wav(pairs):
+    """
+    This function gets a list - [Note(string), Number(string)] and returns a wav list
+    :param pairs: A list of lists [[Note, Number],....]
+    :return: Wav list
+
+    ['F', 16], ['G', 8], ['Q', 32], ['G', 1] -- > [[0, 0], [26629, 26629], [-31033, -31033], [9536, 9536], …]
+    """
+    melody_lst = list()  # The wav list
+    for pair in pairs:
+
+        frequency = NOTE_TO_FREQ_MAPPING[pair[0]]
+        current_length = pair[1] * int((1 / 16) * WAV_FILE_SAMPLE_RATE)
+
+        for index in range(current_length):
+            if frequency != 0:
+                melody_lst.append(calculate_length_of_sample(frequency, index))
+            else:
+                melody_lst.append([0, 0])
+
+    return melody_lst
 
 
 if __name__ == '__main__':

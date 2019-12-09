@@ -22,7 +22,7 @@ class WaveEditorCase(unittest.TestCase):
 
     def test_first_sample_file(self):
         samples_dir = os.path.dirname(find('sample1.txt', os.getcwd()))
-        composed_list = compose_wav_file(rf'{samples_dir}\sample1.txt')
+        composed_list = melody_composing(rf'{samples_dir}\sample1.txt')
         loaded_wave = load_wave(rf'{samples_dir}\sample1.wav')
         self.assertEqual(composed_list, loaded_wave)
 
@@ -32,7 +32,7 @@ class WaveEditorCase(unittest.TestCase):
 
     def test_second_sample_file(self):
         samples_dir = os.path.dirname(find('sample1.txt', os.getcwd()))
-        composed_list = compose_wav_file(rf'{samples_dir}\sample2.txt')
+        composed_list = melody_composing(rf'{samples_dir}\sample2.txt')
         loaded_wave = load_wave(rf'{samples_dir}\sample2.wav')
         self.assertEqual(composed_list, loaded_wave)
 
